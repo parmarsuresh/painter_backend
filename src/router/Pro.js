@@ -22,6 +22,11 @@ router.use(session({
 }));
 
 
+const order = require("../model/order");
+const c_register = require('../model/customer');
+const uploadP = require("../model/uploadP");
+const p_register = require('../model/painter');
+
 var multer = require('multer');
 var path = require('path');
 
@@ -39,7 +44,7 @@ const { paccount, plogin, pregister,
      getimg, upaintingD, imglist, delimg,
      Clogin, cretister, caccount, clogout, uprofileDPC,
      allpainter, p_detail, findimg, addcart, findcart,
-     cartdelete, qtyg, qty1, Cfpass, Pfpass, findimgdata, p_imgdetail, uprofileDC } = require('../controller/control.js');
+     cartdelete, qtyg, qty1, Cfpass, Pfpass, findimgdata, p_imgdetail, uprofileDC, upaintingDP } = require('../controller/control.js');
 
 console.log(up);
 
@@ -125,7 +130,7 @@ router.get("/getimg/:id", getimg);
 router.post('/upaintingD', upaintingD);
 
 
-router.post('/upaintingDP', upload1,)
+router.post('/upaintingDP', upload1, upaintingDP);
 
 // customer login page
 
@@ -203,4 +208,121 @@ router.post("/Pfpass", Pfpass);
 
 router.get("/findimgdata", findimgdata);
 
+router.post("/order", async (req, res) => {
+     console.log(req.body);
+     const { CID, Product_ID, Status, payment_id } = req.body;
+     console.log(Product_ID);
+     const add = new order({ CID: CID, Products: Product_ID, Status: Status, payment_id: payment_id });
+     add.save();
+     return res.status(200).json({ mess: "Payment successfully" });
+})
+
+router.get("/order", async (req, res) => {
+     var id = localStorage.getItem('painterId');
+     const p = await p_register.find({ _id: id });
+     var arr = [];
+     var d1;
+     var f = 0;
+     var c1 = 0;
+     p[0].FirstName
+     if (id) {
+          const data = await order.find({});
+
+          for (let i = 0; i < data.length; i++) {
+               if (data[i].Products[0].ArtName === p[0].FirstName) {
+                    f = 1;
+                    arr[c1] = data[i];
+                    const c = await c_register.find({ _id: data[i].CID });
+                    const { FirstName, LastName } = c[0];
+                    d1 = {
+                         arr, FirstName: FirstName, LastName: LastName
+                    };
+                    c1++;
+               }
+
+
+          }
+          if (f === 0) {
+               return res.status(200).send({ "mess": "no" });
+          }
+          else {
+               return res.status(200).send(d1);
+          }
+
+     }
+     else {
+          return res.status(201).send("no");
+     }
+})
+
+
+router.get("/order1", async (req, res) => {
+     var id = localStorage.getItem('cid');
+     console.log(id);
+     const p = await c_register.find({ _id: id });
+     var arr = [];
+     var d1;
+     var f = 0;
+     var c1 = 0;
+     p[0].FirstName
+
+     if (id) {
+          const data = await order.find({});
+          console.log(data[0]);
+          for (let i = 0; i < data.length; i++) {
+               if (data[i].CID == p[0]._id) {
+                    console.log("yes");
+                    f = 1;
+                    arr[c1] = data[i];
+                    const c = await c_register.find({ _id: data[i].CID });
+                    const { FirstName, LastName } = c[0];
+                    d1 = {
+                         arr, FirstName: FirstName, LastName: LastName
+                    };
+                    c1++;
+               }
+          }
+          if (f <= 0) {
+               return res.status(200).send({ "mess": "no" });
+          }
+          else {
+               return res.status(200).send(d1);
+          }
+
+     }
+     else {
+          return res.status(201).send("no");
+     }
+})
+
+
+
+router.post("/orderC", async (req, res) => {
+     const id = req.body.id;
+     const data = await order.findByIdAndDelete({ _id: id });
+     if (data) {
+          return res.status(200).json({ mess: "order cancled" });
+     }
+     else {
+          return res.status(201).send("somthing wrong");
+     }
+
+})
+
+
+
+
+router.post("/orderA", async (req, res) => {
+     const _id = req.body.id;
+     const s = "Accept";
+     const data = await order.findByIdAndUpdate(_id, { Status: s });
+     if (data) {
+          console.log(data);
+          return res.status(200).json({ mess: "order Accept" });
+     }
+     else {
+          return res.status(201).send("somthing wrong");
+     }
+
+})
 module.exports = router;

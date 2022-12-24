@@ -223,6 +223,7 @@ const delimg = async (req, res) => {
 
 }
 const upaintingDP = async (req, res) => {
+     console.log("yes");
      const P = req.file.filename;
      console.log(P);
      const { Imgtype, Artname, Rprice, Dprice, Size, Medium, Surface, Year } = req.body;
